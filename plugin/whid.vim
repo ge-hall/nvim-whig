@@ -1,6 +1,6 @@
 
 " in plugin/whid.vim
-if exists("g:loaded_whid") || finish | endif " prevent loading twice
+if exists("g:loaded_whid") | finish | endif " prevent loading twice
 
 let s:save_cpo = &cpo " save the current 'cpo' option 
 set cpo&vim " reset them to Vim defaults
