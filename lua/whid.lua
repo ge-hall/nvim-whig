@@ -37,6 +37,15 @@ local function open_window()
 
 end
 
+local function whid()
+	print("whid")
+	open_window()
+end
+
+return {
+	whid = whid
+}
+
 -- jl
 -- kh
 
