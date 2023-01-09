@@ -1,4 +1,4 @@
--- in lua/whid.lua
+-- in lua/whid.luaw
 
 local api = vim.api
 local buf, win
@@ -30,6 +30,29 @@ local function open_window()
 		row = row,
 		col = col
 	}
+
+	local border_opts = {
+		style = 'minimal',
+		relative = 'editor',
+		width = win_width + 2,
+		height = win_height + 2,
+		row = row - 1,
+		col = col - 1
+	}
+
+	local border_buf = api.nvim_create_buf(false, true)
+
+	local border_lines = {
+		"╭" .. string.rep("─", win_width) .. "╮"}
+	local middle_line = 	"│" .. string.rep(" ", win_width) .. "│"
+	for i=1, win_height do
+		table.insert(border_lines, middle_line)
+	end
+	table.insert(border_lines, 	"╰" .. string.rep("─", win_width) .. "╯")
+
+
+	api.nvim_buf_set_lines(border_buf, 0, -1, false, border_lines)
+	
 
 	-- create window
 	win = api.nvim_open_win(buf, true, opts)
