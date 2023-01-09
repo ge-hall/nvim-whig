@@ -53,9 +53,9 @@ local function open_window()
 
 	api.nvim_buf_set_lines(border_buf, 0, -1, false, border_lines)
 	
-	local border_win = api.nvim_open_win(border_buf, true, border_opts)
 	-- create window
 	win = api.nvim_open_win(buf, true, opts)
+	local border_win = api.nvim_open_win(border_buf, true, border_opts)
 	api.nvim_command("autocmd BufWipeout <buffer> exe 'silent bwipeout! '" .. border_buf)
 
 
