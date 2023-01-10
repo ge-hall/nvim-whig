@@ -2,12 +2,21 @@
 
 local api = vim.api
 local buf, win
+local position = 0
+
+local function center(text)
+	local width = api.nvim_win_get_width(0)
+	local shift = math.floor(width/2) - math.floor(string.len(text)/2)
+	return string.rep(" ", shift) .. text
+end
 
 local function open_window()
 	print("open_window")
 	buf = api.nvim_create_buf(false, true)
+	local border_buf = api.nvim_create_buf(false, true)
 
 	api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
+	api.nvim_buf_set_option(buf, 'filetype', 'whid')
 
 	-- get dimensions
 	local width = api.nvim_get_option('columns')
@@ -40,7 +49,6 @@ local function open_window()
 		col = col - 1
 	}
 
-	local border_buf = api.nvim_create_buf(false, true)
 
 	local border_lines = {
 		"╭" .. string.rep("─", win_width) .. "╮"}
@@ -57,14 +65,14 @@ local function open_window()
 	local border_win = api.nvim_open_win(border_buf, true, border_opts)
 	win = api.nvim_open_win(buf, true, opts)
 	api.nvim_command("autocmd BufWipeout <buffer> exe 'silent bwipeout! '" .. border_buf)
+	api.nvim_win_set_option(win, 'cursorline', true) -- it highlight line with the cursor on it
+
+	-- we can add title already here, because first line will never change
+	api.nvim_buf_set_lines(buf, 0, -1, false, { center('What have i done?'), '', ''})
+	api.nvim_buf_add_highlight(buf, -1, 'WhidHeader', 0, 0, -1)
 
 end
 
-local function center(text)
-	local width = api.nvim_win_get_width(0)
-	local shift = math.floor(width/2) - math.floor(string.len(text)/2)
-	return string.rep(" ", shift) .. text
-end
 
 local function set_mappings()
 	local mappings = {
@@ -101,50 +109,36 @@ local function open_file()
 end
 
 local function move_cursor()
-	local line = api.nvim_win_get_cursor(win)[1]
-	local file = api.nvim_buf_get_lines(buf, line-1, line, false)[1]
-	local path = vim.fn.expand(file)
-	local row = vim.fn.line("'\""..path)
-	local col = vim.fn.col("'\""..path)
-	api.nvim_command('edit '..path)
-	api.nvim_win_set_cursor(0, {row, col})
-	close_window()
-end
+  local new_pos = math.max(4, api.nvim_win_get_cursor(win)[1] - 1)
+  api.nvim_win_set_cursor(win, {new_pos, 0})end
 
 local position = 0
 
 local function update_view(direction)
-	position = position + direction
-	if position < 0 then
-		position = 0
-	end
+  api.nvim_buf_set_option(buf, 'modifiable', true)
+  position = position + direction
+  if position < 0 then position = 0 end
 
-	local result = vim.fn.systemlist("git diff-tree --no-commit-id --name-only -r HEAD~" .. position)
+  local result = vim.fn.systemlist('git diff-tree --no-commit-id --name-only -r  HEAD~'..position)
+  if #result == 0 then table.insert(result, '') end -- add  an empty line to preserve layout if there is no results
+  for k,v in pairs(result) do
+    result[k] = '  '..result[k]
+  end
 
-	for k, v in pairs(result) do
-		result[k] = ' '..result[k]
-	end
+  api.nvim_buf_set_lines(buf, 1, 2, false, {center('HEAD~'..position)})
+  api.nvim_buf_set_lines(buf, 3, -1, false, result)
 
-	api.nvim_buf_set_lines(buf, 0, -1, false, {
-		center('What have I done?'),
-		center("HEAD~" .. position),
-		''
-	})
-
-	api.nvim_buf_set_lines(buf, 3, -1, false, result)
-
-	api.nvim_buf_add_highlight(buf, -1, "WhidHeader", 0, 0, -1)
-	api.nvim_buf_add_highlight(buf, -1, "WhidSubHeader", 1, 0, -1)
-end
+  api.nvim_buf_add_highlight(buf, -1, 'whidSubHeader', 1, 0, -1)
+  api.nvim_buf_set_option(buf, 'modifiable', false)end
 
 
 local function whid()
-	print("whid")
-	position = 0
-	open_window()
---	set_mappings()
---	update_view(0)
-	api.nvim_win_set_cursor(win, {4, 0})
+  print("whid")
+  position = 0
+  open_window()
+  set_mappings()
+  update_view(0)
+  api.nvim_win_set_cursor(win, {4, 0})
 end
 
 return {
