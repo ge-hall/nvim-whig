@@ -101,8 +101,14 @@ local function open_file()
 end
 
 local function move_cursor()
-  local new_pos = math.max(4, api.nvim_win_get_cursor(win)[1] - 1)
-  api.nvim_win_set_cursor(win, {new_pos, 0})
+	local line = api.nvim_win_get_cursor(win)[1]
+	local file = api.nvim_buf_get_lines(buf, line-1, line, false)[1]
+	local path = vim.fn.expand(file)
+	local row = vim.fn.line("'\""..path)
+	local col = vim.fn.col("'\""..path)
+	api.nvim_command('edit '..path)
+	api.nvim_win_set_cursor(0, {row, col})
+	close_window()
 end
 
 local position = 0
@@ -136,8 +142,8 @@ local function whid()
 	print("whid")
 	position = 0
 	open_window()
-	set_mappings()
-	update_view(0)
+--	set_mappings()
+--	update_view(0)
 	api.nvim_win_set_cursor(win, {4, 0})
 end
 
