@@ -95,9 +95,9 @@ local function close_window()
 end
 
 local function open_file()
-  local str = api.nvim_get_current_line()
-  close_window()
-  api.nvim_command('edit '..str)
+	local str = api.nvim_get_current_line()
+	close_window()
+	api.nvim_command('edit '..str)
 end
 
 local function move_cursor()
@@ -141,7 +141,7 @@ end
 local function whid()
 	print("whid")
 	position = 0
-	--open_window()
+	open_window()
 --	set_mappings()
 --	update_view(0)
 	api.nvim_win_set_cursor(win, {4, 0})
