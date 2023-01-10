@@ -66,6 +66,53 @@ local function center(text)
 	return string.rep(" ", shift) .. text
 end
 
+local function set_mappings()
+	local mappings = {
+		['['] = 'update_view(-1)',
+		[']'] = 'update_view(1)',
+		['<cr>'] = 'open_file()',
+		h = 'update_view(-1)',
+		l = 'update_view(1)',
+		k = 'move_cursor()',
+		['q'] = 'close_window()'
+	}
+
+	for k,v in pairs(mappings) do
+		api.nvim_buf_set_keymap(buf, 'n', k, ':lua require"whid".'..v..'<cr>', {nowait = true, noremap = true, silent = true})
+	end
+	local other_chars = {
+		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'i', 'n', 'o', 'p', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
+	}
+	for k,v in ipairs(other_chars) do
+		api.nvim_buf_set_keymap(buf, 'n', v, '', { nowait = true, noremap = true, silent = true })
+		api.nvim_buf_set_keymap(buf, 'n', v:upper(), '', { nowait = true, noremap = true, silent = true })
+		api.nvim_buf_set_keymap(buf, 'n',  '<c-'..v..'>', '', { nowait = true, noremap = true, silent = true })
+	end
+end
+
+local function close_window()
+	api.nvim_win_close(win, true)
+end
+
+local function open_file()
+	local line = api.nvim_win_get_cursor(win)[1]
+	local file = api.nvim_buf_get_lines(buf, line-1, line, false)[1]
+	local path = vim.fn.expand(file)
+	api.nvim_command('edit '..path)
+	close_window()
+end
+
+local function move_cursor()
+	local line = api.nvim_win_get_cursor(win)[1]
+	local file = api.nvim_buf_get_lines(buf, line-1, line, false)[1]
+	local path = vim.fn.expand(file)
+	local row = vim.fn.line("'\""..path)
+	local col = vim.fn.col("'\""..path)
+	api.nvim_command('edit '..path)
+	api.nvim_win_set_cursor(0, {row, col})
+	close_window()
+end
+
 local position = 0
 
 local function update_view(direction)
@@ -95,13 +142,20 @@ end
 
 local function whid()
 	print("whid")
+	position = 0
 	open_window()
-	update_view()
+	set_mappings()
+	update_view(0)
 	api.nvim_win_set_cursor(win, {4, 0})
 end
 
 return {
-	whid = whid
+	whid = whid,
+	open_file = open_file(),
+	update_view = update_view(),
+	move_cursor = move_cursor(),
+	close_window = close_window()
+
 }
 
 -- jl
