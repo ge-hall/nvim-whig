@@ -141,7 +141,7 @@ end
 local function whid()
 	print("whid")
 	position = 0
-	open_window()
+	--open_window()
 --	set_mappings()
 --	update_view(0)
 	api.nvim_win_set_cursor(win, {4, 0})
